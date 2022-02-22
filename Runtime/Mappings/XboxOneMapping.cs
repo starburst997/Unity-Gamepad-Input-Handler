@@ -4,10 +4,7 @@ namespace Unity.Gamepad.Mappings
 {
     public class XboxOneMapping : InputMapping
     {
-        public override List<string> GetControllerAliases()
-        {
-            return new List<string>() { "Controller (XBOX One For Windows)" };
-        }
+        public static readonly List<string> GetControllerAliases = new List<string>() { "Controller (XBOX One For Windows)" };
 
         public override void MapBindings(int deviceNumber)
         {

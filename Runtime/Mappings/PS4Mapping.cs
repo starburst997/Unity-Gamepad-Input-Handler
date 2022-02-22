@@ -4,11 +4,8 @@ namespace Unity.Gamepad.Mappings
 {
     public class PS4Mapping : InputMapping
     {
-        public override List<string> GetControllerAliases()
-        {
-            return new List<string>() { "Wireless Controller" };
-        }
-
+        public static readonly List<string> GetControllerAliases = new List<string>() { "Wireless Controller" };
+        
         public override void MapBindings(int deviceNumber)
         {
             ButtonBindingLookupTable[GamepadButton.RightBumper] = $"joystick {deviceNumber} button 5";

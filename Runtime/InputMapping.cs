@@ -15,8 +15,6 @@ namespace Unity.Gamepad
 
         public abstract void MapBindings(int deviceNumber);
 
-        public abstract List<string> GetControllerAliases();
-
         public virtual float OverrideAxisReading(GamepadAxis axis)
         {
             return 0.0f;

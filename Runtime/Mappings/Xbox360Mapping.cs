@@ -4,19 +4,16 @@ namespace Unity.Gamepad.Mappings
 {
     public class Xbox360Mapping : InputMapping
     {
-        public override List<string> GetControllerAliases()
+        public static readonly List<string> GetControllerAliases=  new List<string>() 
         {
-            return new List<string>() 
-            {
-                "Controller (Afterglow Gamepad for Xbox 360)",
-                "Controller (Batarang wired controller (XBOX))",
-                "Controller (Gamepad for Xbox 360)",
-                "Controller (XBOX 360 For Windows)",
-                "Controller (XBOX 360 Wireless Receiver for Windows)",
-                "XBOX 360 For Windows (Controller)",
-                "Controller (XBOX Gamepad)" 
-            };
-        }
+            "Controller (Afterglow Gamepad for Xbox 360)",
+            "Controller (Batarang wired controller (XBOX))",
+            "Controller (Gamepad for Xbox 360)",
+            "Controller (XBOX 360 For Windows)",
+            "Controller (XBOX 360 Wireless Receiver for Windows)",
+            "XBOX 360 For Windows (Controller)",
+            "Controller (XBOX Gamepad)" 
+        };
 
         public override void MapBindings(int deviceNumber)
         {

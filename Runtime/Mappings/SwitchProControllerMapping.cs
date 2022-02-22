@@ -10,14 +10,11 @@ namespace Unity.Gamepad.Mappings
             OverridesAxisReading = true;
         }
 
-        public override List<string> GetControllerAliases()
-        {
-            return new List<string>() 
-            { 
-                /*"Pro Controller",*/
-                "Wireless Gamepad"
-            };
-        }
+        public static readonly List<string> GetControllerAliases = new List<string>() 
+        { 
+            /*"Pro Controller",*/
+            "Wireless Gamepad"
+        };
 
         public override void MapBindings(int deviceNumber)
         {

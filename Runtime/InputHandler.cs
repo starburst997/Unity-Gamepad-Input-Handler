@@ -64,7 +64,7 @@ namespace Unity.Gamepad
         public static InputHandler Instance;
         
         public readonly List<InputMapping> PlayerMappings = new List<InputMapping>();
-        public readonly Dictionary<string, Type> NameToInputMappingLookupTable = new Dictionary<string, Type>();
+        public readonly Dictionary<string, int> NameToInputMappingLookupTable = new Dictionary<string, int>();
         private readonly List<AxisState> _axisToButtonStates = new List<AxisState>();
 
         public bool SkipUnknown = true;
@@ -92,9 +92,10 @@ namespace Unity.Gamepad
             DontDestroyOnLoad(gameObject);
         }
 
-        private readonly List<Type> _supportedInputMappings = new List<Type>()
+        // TODO: Switch to enum or something instead of index (but bewareof enum in dictionary, they create alloc if I remember correctly...)
+        private readonly List<List<string>> _supportedInputMappings = new List<List<string>>()
         {
-            typeof(PS4Mapping), typeof(Xbox360Mapping), typeof(XboxOneMapping), typeof(SwitchProControllerMapping)
+            PS4Mapping.GetControllerAliases, Xbox360Mapping.GetControllerAliases, XboxOneMapping.GetControllerAliases, SwitchProControllerMapping.GetControllerAliases
         };
 
         private void Start()
@@ -117,10 +118,26 @@ namespace Unity.Gamepad
                 {
                     if (NameToInputMappingLookupTable.TryGetValue(devices[i], out var typeofInput))
                     {
-                        var instance = (InputMapping) Activator.CreateInstance(typeofInput);
+                        InputMapping instance = null;
+                        switch (typeofInput)
+                        {
+                            case 0:
+                                instance = new PS4Mapping();
+                                break;
+                            case 1:
+                                instance = new Xbox360Mapping();
+                                break;
+                            case 2:
+                                instance = new XboxOneMapping();
+                                break;
+                            case 3:
+                                instance = new SwitchProControllerMapping();
+                                break;
+                        }
+                        
                         instance.OriginalIndex = i;
-
                         instance.MapBindings(i + 1);
+                        
                         PlayerMappings.Add(instance);
                     }
                     else if (!SkipUnknown)
@@ -185,7 +202,23 @@ namespace Unity.Gamepad
 
                 if (NameToInputMappingLookupTable.TryGetValue(devices[i], out var typeofInput))
                 {
-                    var instance = (InputMapping) Activator.CreateInstance(typeofInput);
+                    InputMapping instance = null;
+                    switch (typeofInput)
+                    {
+                        case 0:
+                            instance = new PS4Mapping();
+                            break;
+                        case 1:
+                            instance = new Xbox360Mapping();
+                            break;
+                        case 2:
+                            instance = new XboxOneMapping();
+                            break;
+                        case 3:
+                            instance = new SwitchProControllerMapping();
+                            break;
+                    }
+                    
                     instance.OriginalIndex = i;
                     instance.MapBindings(i + 1);
 
@@ -541,13 +574,11 @@ namespace Unity.Gamepad
         /// </summary>
         private void FillNameToInputMappingLookupTable()
         {
-            foreach (var typeofMapping in _supportedInputMappings)
+            for (var i = 0; i < _supportedInputMappings.Count; i++)
             {
-                var instance = (InputMapping)Activator.CreateInstance(typeofMapping);
-                foreach (var alias in instance.GetControllerAliases())
-                {
-                    NameToInputMappingLookupTable[alias] = typeofMapping;
-                }
+                var aliases = _supportedInputMappings[i];
+                foreach (var alias in aliases)
+                    NameToInputMappingLookupTable[alias] = i;
             }
         }
     }
