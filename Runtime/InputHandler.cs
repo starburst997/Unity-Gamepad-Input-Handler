@@ -94,7 +94,7 @@ namespace Unity.Gamepad
             DontDestroyOnLoad(gameObject);
         }
 
-        // TODO: Switch to enum or something instead of index (but bewareof enum in dictionary, they create alloc if I remember correctly...)
+        // TODO: Switch to enum or something instead of index (but beware of enum in dictionary, they create alloc if I remember correctly...)
         private readonly List<List<string>> _supportedInputMappings = new List<List<string>>()
         {
             PS4Mapping.GetControllerAliases, Xbox360Mapping.GetControllerAliases, XboxOneMapping.GetControllerAliases, SwitchProControllerMapping.GetControllerAliases
@@ -112,52 +112,7 @@ namespace Unity.Gamepad
             PlayerMappings.Add(standardKeyboardMapping);
             FillNameToInputMappingLookupTable();
 
-            var devices = Input.GetJoystickNames();
-
-            for (var i = 0; i < devices.Length; i++)
-            {
-                if (!string.IsNullOrEmpty(devices[i]))
-                {
-                    if (NameToInputMappingLookupTable.TryGetValue(devices[i], out var typeofInput))
-                    {
-                        InputMapping instance = null;
-                        switch (typeofInput)
-                        {
-                            case 0:
-                                instance = new PS4Mapping();
-                                break;
-                            case 1:
-                                instance = new Xbox360Mapping();
-                                break;
-                            case 2:
-                                instance = new XboxOneMapping();
-                                break;
-                            case 3:
-                                instance = new SwitchProControllerMapping();
-                                break;
-                        }
-                        
-                        instance.OriginalIndex = i;
-                        instance.MapBindings(i + 1);
-                        
-                        PlayerMappings.Add(instance);
-                    }
-#if UNITY_WEBGL
-                    else // WebGL have standard gamepad (I thinK?) so we can assume X360 mapping
-#else
-                    else if (!SkipUnknown)
-#endif
-                    {
-                        var mapping = new Xbox360Mapping();
-                        mapping.OriginalIndex = i;
-                        mapping.MapBindings(i + 1);
-                        PlayerMappings.Add(mapping);
-                    }
-
-                    if (PlayerMappings.Count >= MaxController + 1)
-                        break;
-                }
-            }
+            RefreshControllers();
 
             if (DetectController)
                 StartCoroutine(CheckForNewControllersCoroutine());
@@ -226,6 +181,8 @@ namespace Unity.Gamepad
                         case 3:
                             instance = new SwitchProControllerMapping();
                             break;
+                        default:
+                            continue;
                     }
                     
                     instance.OriginalIndex = i;
