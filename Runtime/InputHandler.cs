@@ -159,10 +159,7 @@ namespace Unity.Gamepad
                 }
             }
 
-            // WebGL needs to check periodically
-#if !UNITY_WEBGL
             if (DetectController)
-#endif
                 StartCoroutine(CheckForNewControllersCoroutine());
         }
 
