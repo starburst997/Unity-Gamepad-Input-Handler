@@ -1,22 +1,20 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
 
 public class InputHandlerMenu : EditorWindow
 {
-    static EditorWindow window;
-    static int NumberOfGamepadssToAdd = 10;
-    [MenuItem("Input Handler/Setup Input Manager")]
+    private static EditorWindow _window;
+    private static int _numberOfGamepadsToAdd = 10;
+    
+    [MenuItem("Tools/Input Handler/Setup Input Manager")]
     public static void SetupInputManager()
     {
-        window = GetWindow<InputHandlerMenu>("Confirmation");
-        window.maxSize = new Vector2(600, 200);
-        window.minSize = new Vector2(600, 200);
+        _window = GetWindow<InputHandlerMenu>("Confirmation");
+        _window.maxSize = new Vector2(600, 200);
+        _window.minSize = new Vector2(600, 200);
     }
-
 
     private void OnGUI()
     {
@@ -24,22 +22,24 @@ public class InputHandlerMenu : EditorWindow
         GUILayout.Label("This will populate the Input Manager with 20 entries per gamepad supported, do you wish to continue?");
         GUILayout.Space(10);
 
-        bool Recov = true;
-        Recov = GUILayout.Toggle(Recov, "Create backup of old InputManager before making new?");
+        var recover = true;
+        recover = GUILayout.Toggle(recover, "Create backup of old InputManager before making new?");
         GUILayout.Space(10);
 
         GUILayout.Label("How many gamepads do you want to support? Note that if you have more gamepads connected, than you support, you may run into issues, so recommended would be around 10 or so.");
-        NumberOfGamepadssToAdd = EditorGUILayout.IntSlider(NumberOfGamepadssToAdd, 1, 16);
+        _numberOfGamepadsToAdd = EditorGUILayout.IntSlider(_numberOfGamepadsToAdd, 1, 16);
+        
         if (GUILayout.Button("Yes"))
         {
-            if (Recov)
-                this.SaveCopyOfInputManager();
-            this.FillManagerWithJoysticks();
+            if (recover)
+                SaveCopyOfInputManager();
+            
+            FillManagerWithJoysticks();
         }
         GUILayout.Space(10);
         if (GUILayout.Button("No"))
         {
-            window.Close();
+            _window.Close();
         }
     }
 
@@ -47,7 +47,7 @@ public class InputHandlerMenu : EditorWindow
     {
         var manager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset")[0];
 
-        string finalName = this.GetUniqueName("InputManagerBackup", Application.dataPath + "/", ".txt");
+        string finalName = GetUniqueName("InputManagerBackup", Application.dataPath + "/", ".txt");
         File.Copy("ProjectSettings/InputManager.asset", Application.dataPath + "/" + finalName);
     }
 
@@ -65,11 +65,11 @@ public class InputHandlerMenu : EditorWindow
     private void FillManagerWithJoysticks()
     {
         StringBuilder sb = new StringBuilder();
-        for (int i = 1; i <= NumberOfGamepadssToAdd; i++)
+        for (int i = 1; i <= _numberOfGamepadsToAdd; i++)
         {
-            sb.Append("\n");
             for (int x = 0; x < 20; x++)
             {
+                sb.Append("\n");
                 sb.Append(string.Format(
                     @"  - serializedVersion: 3
     m_Name: joystick {0} analog {1}
@@ -80,49 +80,18 @@ public class InputHandlerMenu : EditorWindow
     altNegativeButton:
     altPositiveButton: 
     gravity: 0
-    dead: 0.001
+    dead: 0.19
     sensitivity: 1
     snap: 0
     invert: 0
     type: 2
     axis: {1}
-    joyNum: {0} ", i, x));
-                sb.Append("\n");
+    joyNum: {0}", i, x));
             }
         }
 
         File.AppendAllText("ProjectSettings/InputManager.asset", sb.ToString());
 
         AssetDatabase.Refresh();
-    }
-
-    [MenuItem("Input Handler/Setup Scene")]
-    public static void Setup()
-    {
-
-        GameObject existingHandler = GameObject.Find("InputHandler");
-        if (existingHandler == null)
-        {
-            existingHandler = new GameObject();
-            existingHandler.name = "InputHandler";
-            existingHandler.AddComponent<InputHandler>();
-        }
-
-        try
-        {
-            Input.GetKeyDown("joystick 1 button 1");
-            Input.GetAxisRaw("joystick 1 analog 1");
-        }
-        catch
-        {
-            Debug.Log("Could not read button 1 on joystick 1, have you run setup of Input Manager?");
-        }
-
-    }
-
-    [MenuItem("Input Handler/Export To Package")]
-    public static void CreatePackage()
-    {
-        AssetDatabase.ExportPackage("Assets/InputHandler", "InputHandlerPackage.unitypackage", ExportPackageOptions.Recurse);
     }
 }

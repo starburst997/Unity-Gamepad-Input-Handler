@@ -1,0 +1,9 @@
+{
+    "name": "jd.boivin.unity.gamepad",
+    "displayName": "Gamepad InputHandler",
+    "description": "Cross gamepad support for the Unity Engine.",
+    "version": "1.0.0",
+    "unity": "2019.3",
+    "license": "MIT",
+    "author": "Daniel Kaldahl Skjølstrup"
+}
