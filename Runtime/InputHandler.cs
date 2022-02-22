@@ -67,6 +67,8 @@ namespace Unity.Gamepad
         public readonly Dictionary<string, int> NameToInputMappingLookupTable = new Dictionary<string, int>();
         private readonly List<AxisState> _axisToButtonStates = new List<AxisState>();
 
+        public int MaxController = 4;
+        
         public bool SkipUnknown = true;
         public bool DetectController = false;
         
@@ -147,6 +149,9 @@ namespace Unity.Gamepad
                         mapping.MapBindings(i + 1);
                         PlayerMappings.Add(mapping);
                     }
+
+                    if (PlayerMappings.Count >= MaxController + 1)
+                        break;
                 }
             }
 
@@ -176,12 +181,15 @@ namespace Unity.Gamepad
                             OnControllerDisconnected?.Invoke(i);
                         }
                     }
-                    else
+                    else if (PlayerMappings[i].IsDisconnected)
                     {
                         PlayerMappings[i].IsDisconnected = false;
+                        OnNewControllerConnected?.Invoke(i);
                     }
                 }
             }
+
+            if (PlayerMappings.Count >= MaxController + 1) return;
             
             for (var i = 0; i < devices.Length; i++)
             {
@@ -234,6 +242,9 @@ namespace Unity.Gamepad
                 }
 
                 OnNewControllerConnected?.Invoke(PlayerMappings.Count - 1);
+                
+                if (PlayerMappings.Count >= MaxController + 1)
+                    break;
             }
         }
         
