@@ -142,7 +142,11 @@ namespace Unity.Gamepad
                         
                         PlayerMappings.Add(instance);
                     }
+#if UNITY_WEBGL
+                    else // WebGL have standard gamepad (I thinK?) so we can assume X360 mapping
+#else
                     else if (!SkipUnknown)
+#endif
                     {
                         var mapping = new Xbox360Mapping();
                         mapping.OriginalIndex = i;
@@ -155,11 +159,11 @@ namespace Unity.Gamepad
                 }
             }
 
-            // Only one coroutine
+            // WebGL needs to check periodically
+#if !UNITY_WEBGL
             if (DetectController)
+#endif
                 StartCoroutine(CheckForNewControllersCoroutine());
-            
-            //StartCoroutine(CheckForControllerDC());
         }
 
         public void RefreshControllers()
@@ -232,7 +236,11 @@ namespace Unity.Gamepad
 
                     PlayerMappings.Add(instance);
                 }
+#if UNITY_WEBGL
+                else
+#else
                 else if (!SkipUnknown)
+#endif
                 {
                     var mapping = new Xbox360Mapping();
                     mapping.OriginalIndex = i;
@@ -252,42 +260,9 @@ namespace Unity.Gamepad
         {
             while (true)
             {
-                RefreshControllers();
-                
                 yield return _wait;
-            }
-        }
-
-        private IEnumerator CheckForControllerDC()
-        {
-            while (true)
-            {
-                var devices = Input.GetJoystickNames();
-
-                // This assumes that everything that is detected by Unity, stays seen by GetJoystickNames, either by name or as empty. (Also skip 1 because of keyboard)
-                for (var i = 1; i < PlayerMappings.Count; i++)
-                {
-                    if (devices.Length >= PlayerMappings[i].OriginalIndex)
-                    {
-                        if (string.IsNullOrEmpty(devices[PlayerMappings[i].OriginalIndex]))
-                        {
-                            if (!PlayerMappings[i].IsDisconnected)
-                            {
-                                PlayerMappings[i].IsDisconnected = true;
-                                if (OnControllerDisconnected != null)
-                                {
-                                    OnControllerDisconnected.Invoke(i);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            PlayerMappings[i].IsDisconnected = false;
-
-                        }
-                    }
-                }
-                yield return _waitFrame;
+                
+                RefreshControllers();
             }
         }
 
@@ -327,16 +302,19 @@ namespace Unity.Gamepad
 
         public bool GetButtonDown(GamepadButton button, int playerNumber)
         {
+            if (playerNumber >= PlayerMappings.Count) return false;
             return Input.GetKeyDown(PlayerMappings[playerNumber].ButtonBindingLookupTable[button]);
         }
 
         public bool GetButton(GamepadButton button, int playerNumber)
         {
+            if (playerNumber >= PlayerMappings.Count) return false;
             return Input.GetKey(PlayerMappings[playerNumber].ButtonBindingLookupTable[button]);
         }
 
         public bool GetButtonUp(GamepadButton button, int playerNumber)
         {
+            if (playerNumber >= PlayerMappings.Count) return false;
             return Input.GetKeyUp(PlayerMappings[playerNumber].ButtonBindingLookupTable[button]);
         }
 
@@ -350,6 +328,8 @@ namespace Unity.Gamepad
         /// <returns></returns>
         public bool GetAxisAsButtonDown(GamepadAxis axis, int playerNumber)
         {
+            if (playerNumber >= PlayerMappings.Count) return false;
+            
             var mapping = _axisToButtonStates.Where(state => state.BelongingMapping == PlayerMappings[playerNumber] && state.Axis == axis && state.DoesAxisMatter == PositiveNegativeAxis.Indifferent).ToList();
             if (mapping.Count != 0)
             {
@@ -393,6 +373,8 @@ namespace Unity.Gamepad
         /// <returns></returns>
         public bool GetAxisAsButtonDown(GamepadAxis axis, int playerNumber, PositiveNegativeAxis whichDirection)
         {
+            if (playerNumber >= PlayerMappings.Count) return false;
+            
             var mapping = _axisToButtonStates.Where(state => state.BelongingMapping == PlayerMappings[playerNumber] && state.Axis == axis && state.DoesAxisMatter == whichDirection).ToList();
             if (mapping.Count != 0)
             {
@@ -436,6 +418,8 @@ namespace Unity.Gamepad
 
         public bool GetAxisAsButtonUp(GamepadAxis axis, int playerNumber)
         {
+            if (playerNumber >= PlayerMappings.Count) return false;
+            
             var mapping = _axisToButtonStates.Where(state => state.BelongingMapping == PlayerMappings[playerNumber] && state.Axis == axis && state.DoesAxisMatter == PositiveNegativeAxis.Indifferent).ToList();
             if (mapping.Count != 0)
             {
@@ -474,6 +458,8 @@ namespace Unity.Gamepad
 
         public bool GetAxisAsButtonUp(GamepadAxis axis, int playerNumber, PositiveNegativeAxis whichDirection)
         {
+            if (playerNumber >= PlayerMappings.Count) return false;
+            
             var mapping = _axisToButtonStates.Where(state => state.BelongingMapping == PlayerMappings[playerNumber] && state.Axis == axis && state.DoesAxisMatter == whichDirection).ToList();
             if (mapping.Count != 0)
             {
@@ -512,6 +498,8 @@ namespace Unity.Gamepad
 
         public float GetAxisValue(GamepadAxis axis, int playerNumber)
         {
+            if (playerNumber >= PlayerMappings.Count) return 0f;
+            
             if (PlayerMappings[playerNumber].OverridesAxisReading)
             {
                 return PlayerMappings[playerNumber].OverrideAxisReading(axis);
@@ -546,6 +534,8 @@ namespace Unity.Gamepad
 
         public Vector2 GetCombinedAxis(GamepadAxis axisX, GamepadAxis axisY, int playerNumber, float deadZone = 0.0f)
         {
+            if (playerNumber >= PlayerMappings.Count) return Vector2.zero;
+            
             var VectorToReturn = new Vector2();
             if (PlayerMappings[playerNumber].OverridesAxisReading)
             {
